@@ -11,21 +11,25 @@ const CockTailStore = () => {
   const fetchCocktails = async (url) => {
     setLoading(true);
     setIsError({ status: false, msg: "" });
+
     try {
       const response = await fetch(url);
       const { drinks } = await response.json();
-      setCocktails(drinks);
-      setLoading(false);
-      setIsError({ status: false, msg: "" });
+
       if (!drinks) {
-        throw new Error("No Data Found");
+        setCocktails([]);
+        return;
       }
+
+      setCocktails(drinks);
     } catch (error) {
-      setLoading(false);
+      setCocktails([]);
       setIsError({
         status: true,
-        msg: error.message || "some thing went Wrong!",
+        msg: error.message || "Something went wrong!",
       });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -36,61 +40,58 @@ const CockTailStore = () => {
 
   return (
     <center>
-      <form action="">
-        <center>
-          <ul id="growing-search-freebie">
-            <li>
-              <div class="growing-search">
-                <div class="input">
-                  <input
-                    type="text"
-                    name="search"
-                    placeholder="search cocktails"
-                    onChange={(e) => {
-                      setSearchTerm(e.target.value);
-                    }}
-                  />
-                </div>
-                <div class="submit">
-                  <button type="submit" name="go_search">
-                    <span class="fa fa-search"></span>
-                  </button>
-                </div>
+      {/* Search Form */}
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+        }}
+      >
+        <ul id="growing-search-freebie">
+          <li>
+            <div className="growing-search">
+              <div className="input">
+                <input
+                  type="text"
+                  name="search"
+                  placeholder="Search cocktails"
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
               </div>
-            </li>
-          </ul>
-        </center>
+              <div className="submit">
+                <button type="submit" name="go_search">
+                  <span className="fa fa-search"></span>
+                </button>
+              </div>
+            </div>
+          </li>
+        </ul>
       </form>
+
       <hr />
-      {loading && !isError?.status && (
+
+      {/* Loader */}
+      {loading && !isError.status && (
         <div className="lds-spinner">
-          <div></div>
-          <div></div>
-          <div></div>
-          <div></div>
-          <div></div>
-          <div></div>
-          <div></div>
-          <div></div>
-          <div></div>
-          <div></div>
-          <div></div>
-          <div></div>
-          <div></div>
+          {Array.from({ length: 12 }).map((_, i) => (
+            <div key={i}></div>
+          ))}
         </div>
       )}
-      {isError && <h1 className="errormsg">{isError.msg}</h1>}
-      {!loading && !isError?.status && (
+
+      {/* Error */}
+      {isError.status && <h1 className="errormsg">{isError.msg}</h1>}
+
+      {/* Cocktails List */}
+      {!loading && !isError.status && Array.isArray(cocktails) && cocktails.length > 0 && (
         <ul className="cocktail-grid">
           {cocktails.map(({ idDrink, strDrink, strDrinkThumb }) => (
             <li key={idDrink} className="cocktail-item">
               <img
                 src={strDrinkThumb}
-                alt=""
+                alt={strDrink}
                 width="250"
                 className="cocktail-image"
-              />{" "}
-              <br />
+              />
               <div className="cocktail-info">
                 <p>{strDrink}</p>
               </div>
@@ -98,7 +99,13 @@ const CockTailStore = () => {
           ))}
         </ul>
       )}
-      <footer>&copy;Murali krishna Mallela</footer>
+
+      {/* No Results */}
+      {!loading && !isError.status && Array.isArray(cocktails) && cocktails.length === 0 && (
+        <h2>No cocktails found</h2>
+      )}
+
+      <footer>&copy; Murali Krishna Mallela</footer>
     </center>
   );
 };
